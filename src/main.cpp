@@ -21,6 +21,8 @@ float temp = 0.0;
 float maxTemp = 32.0;
 float minTemp = 30.0;
 
+bool heatWarning = false;
+
 // put object declarations here:
 MAX6675 thermocouple(thermoCLK, thermoCS, thermoDO);
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
@@ -54,7 +56,6 @@ void setup() {
   display.println("Alarm Chiller");
   display.display();
   delay(2000); // Pause for 2 seconds
-  display.clearDisplay();
   
 
   pinMode(relay, OUTPUT);
@@ -62,8 +63,53 @@ void setup() {
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
-  
+  // clear the display for next loop
+  display.clearDisplay();
+
+  // basic readout test, just print the current temp on serial monitor
+  Serial.print("C = ");
+  Serial.println(thermocouple.readCelsius());
+
+  // display current temperature and thresholds
+  display.setTextSize(1);      // Normal 1:1 pixel scale
+  display.setTextColor(SSD1306_WHITE); // Draw white text
+  display.setCursor(0,0);
+  display.print("Temp: ");
+  display.print(thermocouple.readCelsius());
+  display.println(" C");
+  display.print("Max : ");
+  display.print(maxTemp);
+  display.println(" C");
+  display.print("Min : ");
+  display.print(minTemp);
+  display.println(" C");
+  display.display();
+
+  // temperature threshold checking
+  if (thermocouple.readCelsius() >= maxTemp) {
+    digitalWrite(relay, HIGH);
+    heatWarning = 1;
+  }
+  else if(thermocouple.readCelsius() <= minTemp){
+    digitalWrite(relay, LOW);
+    heatWarning = 0;
+    Serial.println("LO-TEMP");
+  }
+  if(heatWarning){
+    display.setCursor(84,0);
+    display.print("|");
+    display.setCursor(display.getCursorX() + 3,0);
+    display.print("HEAT");
+    display.setCursor(display.getCursorX() + 3,0);
+    display.print("|");
+    display.setCursor(84,8);
+    display.print("|ALERT|");
+    Serial.println("HI-TEMP");
+    display.display();
+  }
+
+  // For the MAX6675 to update, you must delay AT LEAST 250ms between reads!
+  delay(1000);
 }
 
 // put function definitions here:
