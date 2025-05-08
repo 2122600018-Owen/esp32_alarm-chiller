@@ -18,8 +18,8 @@ int relay = 32;
 #define SCREEN_ADDRESS 0x3C ///< See datasheet for Address; 0x3D for 128x64, 0x3C for 128x32
 
 float temp = 0.0;
-float maxTemp = 32.0;
-float minTemp = 30.0;
+float maxTemp = 30.0;
+float minTemp =25.0;
 
 bool heatWarning = false;
 
@@ -71,41 +71,47 @@ void loop() {
   Serial.println(thermocouple.readCelsius());
 
   // display current temperature and thresholds
-  display.setTextSize(1);      // Normal 1:1 pixel scale
+  //display.setTextSize(1);      // Normal 1:1 pixel scale
+  display.setTextSize(2);      // Larger 2:1 pixel scale
   display.setTextColor(SSD1306_WHITE); // Draw white text
-  display.setCursor(0,0);
-  display.print("Temp: ");
+  display.setCursor(0,8);
+  //display.print("Temp: ");
   display.print(thermocouple.readCelsius());
-  display.println(" C");
-  display.print("Max : ");
-  display.print(maxTemp);
-  display.println(" C");
-  display.print("Min : ");
-  display.print(minTemp);
-  display.println(" C");
+  display.print((char)247);display.println("C");
+  //display.print("Max : ");
+  //display.print(maxTemp);
+  //display.println(" C");
+  //display.print("Min : ");
+  //display.print(minTemp);
+  //display.println(" C");
   display.display();
 
+  
   // temperature threshold checking
   if (thermocouple.readCelsius() >= maxTemp) {
     digitalWrite(relay, HIGH);
     heatWarning = 1;
   }
-  else if(thermocouple.readCelsius() <= minTemp){
-    digitalWrite(relay, LOW);
-    heatWarning = 0;
-    Serial.println("LO-TEMP");
-  }
+  //else if(thermocouple.readCelsius() <= minTemp){
+  //  digitalWrite(relay, LOW);
+  //  //heatWarning = 0;
+  //  Serial.println("LO-TEMP");
+  //}
   if(heatWarning){
-    display.setCursor(84,0);
+    display.setTextSize(1);      // Normal 1:1 pixel scale
+    display.setCursor(86,8);
     display.print("|");
-    display.setCursor(display.getCursorX() + 3,0);
+    display.setCursor(display.getCursorX() + 3,display.getCursorY());
     display.print("HEAT");
-    display.setCursor(display.getCursorX() + 3,0);
+    display.setCursor(display.getCursorX() + 3,display.getCursorY());
     display.print("|");
-    display.setCursor(84,8);
+    display.setCursor(86,16);
     display.print("|ALERT|");
     Serial.println("HI-TEMP");
     display.display();
+    //digitalWrite(relay, HIGH);
+    //delay(1000);
+    //digitalWrite(relay, LOW);
   }
 
   // For the MAX6675 to update, you must delay AT LEAST 250ms between reads!
